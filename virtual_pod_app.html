@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Pod - AI Development Environment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            background: white;
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #667eea;
+        }
+        
+        .tab-content {
+            padding: 30px;
+            min-height: 600px;
+        }
+        
+        .agent-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .agent-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .agent-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .status-idle {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+        
+        .status-working {
+            background: #74b9ff;
+            color: white;
+        }
+        
+        .status-complete {
+            background: #00b894;
+            color: white;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .input-group input, .input-group textarea, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .artifact-item {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .artifact-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .artifact-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .artifact-title {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .artifact-type {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .chat-container {
+            height: 400px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        .chat-input-container {
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            background: white;
+        }
+        
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+        }
+        
+        .message.bot {
+            background: white;
+            border: 2px solid #e9ecef;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #00b894;
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(-50px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .code-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Virtual Pod</h1>
+            <p>AI-Powered Virtual Development Environment</p>
+        </div>
+        
+        <div class="dashboard">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('initialization')">Project Init</button>
+                <button class="tab" onclick="showTab('requirements')">Requirements</button>
+                <button class="tab" onclick="showTab('design')">Design</button>
+                <button class="tab" onclick="showTab('development')">Development</button>
+                <button class="tab" onclick="showTab('testing')">Testing</button>
+                <button class="tab" onclick="showTab('artifacts')">Artifacts</button>
+                <button class="tab" onclick="showTab('chat')">AI Assistant</button>
+            </div>
+            
+            <!-- Project Initialization Tab -->
+            <div id="initialization" class="tab-content">
+                <h2>🚀 Project Initialization</h2>
+                <div class="input-group">
+                    <label for="projectName">Project Name</label>
+                    <input type="text" id="projectName" placeholder="Enter your project name">
+                </div>
+                <div class="input-group">
+                    <label for="projectDescription">Project Description</label>
+                    <textarea id="projectDescription" rows="4" placeholder="Describe your project requirements and goals..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="techStack">Preferred Technology Stack</label>
+                    <select id="techStack">
+                        <option value="react">React + Node.js</option>
+                        <option value="vue">Vue.js + Express</option>
+                        <option value="angular">Angular + .NET</option>
+                        <option value="python">Python + Django</option>
+                        <option value="java">Java + Spring Boot</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="initializeProject()">Initialize Project</button>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="overallProgress"></div>
+                </div>
+                
+                <div id="agentStatus">
+                    <div class="agent-card">
+                        <div class="agent-status status-idle">IDLE</div>
+                        <h3>🎯 Project Lead Agent</h3>
+                        <p>Coordinates the entire development process and manages agent interactions.</p>
+                        <div id="projectLeadOutput"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Requirements Tab -->
+            <div id="requirements" class="tab-content hidden">
+                <h2>📋 Requirements Analysis</h2>
+                <div class="agent-card">
+                    <div class="agent-status status-idle" id="baStatus">IDLE</div>
+                    <h3>👔 Business Analyst Agent</h3>
+                    <p>Analyzing requirements and generating user stories...</p>
+                    <div id="baOutput"></div>
+                </div>
+                <button class="btn btn-primary" onclick="generateRequirements()">Generate User Stories</button>
+                <div id="userStories"></div>
+            </div>
+            
+            <!-- Design Tab -->
+            <div id="design" class="tab-content hidden">
+                <h2>🎨 Design Phase</h2>
+                <div class="agent-card">
+                    <div class="agent-status status-idle" id="designerStatus">IDLE</div>
+                    <h3>🎭 Designer Agent</h3>
+                    <p>Creating UI/UX designs and system architecture...</p>
+                    <div id="designerOutput"></div>
+                </div>
+                <button class="btn btn-primary" onclick="generateDesign()">Generate Design</button>
+                <div id="designArtifacts"></div>
+            </div>
+            
+            <!-- Development Tab -->
+            <div id="development" class="tab-content hidden">
+                <h2>💻 Development Phase</h2>
+                <div class="agent-card">
+                    <div class="agent-status status-idle" id="devStatus">IDLE</div>
+                    <h3>⚡ Developer Agent</h3>
+                    <p>Generating production-ready code based on requirements and design...</p>
+                    <div id="devOutput"></div>
+                </div>
+                <button class="btn btn-primary" onclick="generateCode()">Generate Code</button>
+                <div id="codeArtifacts"></div>
+            </div>
+            
+            <!-- Testing Tab -->
+            <div id="testing" class="tab-content hidden">
+                <h2>🧪 Testing Phase</h2>
+                <div class="agent-card">
+                    <div class="agent-status status-idle" id="testerStatus">IDLE</div>
+                    <h3>🔍 Tester Agent</h3>
+                    <p>Creating comprehensive test cases and validation scenarios...</p>
+                    <div id="testerOutput"></div>
+                </div>
+                <button class="btn btn-primary" onclick="generateTests()">Generate Test Cases</button>
+                <button class="btn btn-secondary" onclick="runTests()">Execute Tests</button>
+                <div id="testResults"></div>
+            </div>
+            
+            <!-- Artifacts Tab -->
+            <div id="artifacts" class="tab-content hidden">
+                <h2>📁 Project Artifacts</h2>
+                <div id="artifactsList">
+                    <!-- Artifacts will be populated here -->
+                </div>
+                <button class="btn btn-secondary" onclick="exportArtifacts()">Export All Artifacts</button>
+            </div>
+            
+            <!-- Chat Tab -->
+            <div id="chat" class="tab-content hidden">
+                <h2>💬 AI Assistant Chat</h2>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message bot">
+                            <strong>Virtual Pod Assistant:</strong> Hello! I'm here to help you with your project. Ask me anything about your development process, requirements, or generated artifacts.
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <div class="chat-input">
+                            <input type="text" id="chatInput" placeholder="Ask me anything about your project...">
+                            <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        // Global project state
+        let projectData = {
+            name: '',
+            description: '',
+            techStack: '',
+            artifacts: [],
+            currentPhase: 'initialization',
+            agents: {
+                projectLead: { status: 'idle', output: '' },
+                businessAnalyst: { status: 'idle', output: '' },
+                designer: { status: 'idle', output: '' },
+                developer: { status: 'idle', output: '' },
+                tester: { status: 'idle', output: '' }
+            }
+        };
+        
+        // AI Agent Templates and Logic
+        const agentTemplates = {
+            requirements: {
+                userStoryTemplate: `As a [user type], I want [functionality] so that [benefit].
+                
+Acceptance Criteria:
+- Given [context]
+- When [action]
+- Then [expected result]
+
+Priority: [High/Medium/Low]
+Story Points: [1-13]`,
+                
+                generateUserStories: function(projectDescription) {
+                    const stories = [
+                        {
+                            title: "User Authentication",
+                            description: `As a user, I want to securely log in to the application so that I can access personalized features.
+                            
+Acceptance Criteria:
+- Given I am on the login page
+- When I enter valid credentials
+- Then I should be logged in successfully
+- And I should be redirected to the dashboard
+
+Priority: High
+Story Points: 5`
+                        },
+                        {
+                            title: "Dashboard Overview",
+                            description: `As a logged-in user, I want to see an overview dashboard so that I can quickly understand the application status.
+                            
+Acceptance Criteria:
+- Given I am logged in
+- When I access the dashboard
+- Then I should see key metrics and navigation options
+- And the interface should be responsive
+
+Priority: High
+Story Points: 8`
+                        },
+                        {
+                            title: "Data Management",
+                            description: `As a user, I want to manage my data efficiently so that I can maintain accurate information.
+                            
+Acceptance Criteria:
+- Given I have access to data management
+- When I perform CRUD operations
+- Then the data should be updated in real-time
+- And changes should be validated
+
+Priority: Medium
+Story Points: 13`
+                        }
+                    ];
+                    return stories;
+                }
+            },
+            
+            design: {
+                generateDesignSpecs: function(requirements) {
+                    return {
+                        wireframes: `
+UI Components:
+1. Header Navigation
+   - Logo placement: Top-left
+   - Navigation menu: Horizontal layout
+   - User profile: Top-right dropdown
+
+2. Main Content Area
+   - Grid layout: Responsive 12-column system
+   - Card-based components
+   - Progressive disclosure patterns
+
+3. Sidebar (if applicable)
+   - Collapsible navigation
+   - Search functionality
+   - Filter options
+
+Color Palette:
+- Primary: #667eea (Purple-blue)
+- Secondary: #764ba2 (Deep purple)
+- Accent: #00b894 (Teal)
+- Neutral: #f8f9fa (Light gray)
+- Text: #495057 (Dark gray)
+
+Typography:
+- Headers: 'Segoe UI', sans-serif
+- Body: 'Segoe UI', Tahoma, Geneva
+- Code: 'Courier New', monospace`,
+                        
+                        architecture: `
+System Architecture:
+
+Frontend Layer:
+- ${projectData.techStack} framework
+- Component-based architecture
+- State management (Redux/Vuex/NgRx)
+- Responsive design principles
+
+Backend Layer:
+- RESTful API design
+- Authentication & authorization
+- Data validation & sanitization
+- Error handling & logging
+
+Database Layer:
+- Relational database design
+- Indexing strategy
+- Data integrity constraints
+- Backup & recovery procedures
+
+Integration Layer:
+- Third-party API integrations
+- Real-time communication (WebSocket)
+- Caching mechanisms
+- Security protocols`
+                    };
+                }
+            },
+            
+            development: {
+                generateCode: function(techStack) {
+                    const codeTemplates = {
+                        react: `
+// App.js - Main Application Component
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Header from './components/Header';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import './App.css';
+
+function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check for existing authentication
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      // Validate token and set user
+      validateToken(token);
+    }
+    setLoading(false);
+  }, []);
+
+  const validateToken = async (token) => {
+    try {
+      const response = await fetch('/api/validate', {
+        headers: { Authorization: \`Bearer \${token}\` }
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+      }
+    } catch (error) {
+      console.error('Token validation failed:', error);
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <Router>
+      <div className="App">
+        <Header user={user} setUser={setUser} />
+        <Routes>
+          <Route path="/" element={<Dashboard user={user} />} />
+          <Route path="/login" element={<Login setUser={setUser} />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
+
+// components/Header.js
+import React from 'react';
+
+const Header = ({ user, setUser }) => {
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    setUser(null);
+  };
+
+  return (
+    <header className="header">
+      <div className="container">
+        <h1 className="logo">${projectData.name}</h1>
+        <nav className="navigation">
+          {user ? (
+            <div className="user-menu">
+              <span>Welcome, {user.name}</span>
+              <button onClick={handleLogout}>Logout</button>
+            </div>
+          ) : (
+            <a href="/login">Login</a>
+          )}
+        </nav>
+      </div>
+    </header>
+  );
+};
+
+export default Header;`,
+                        
+                        python: `
+# app.py - Flask Application
+from flask import Flask, request, jsonify, session
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+import datetime
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your-secret-key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project.db'
+db = SQLAlchemy(app)
+
+# Models
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(120), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+# Routes
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    
+    if User.query.filter_by(username=data['username']).first():
+        return jsonify({'error': 'Username already exists'}), 400
+    
+    user = User(
+        username=data['username'],
+        email=data['email']
+    )
+    user.set_password(data['password'])
+    
+    db.session.add(user)
+    db.session.commit()
+    
+    return jsonify({'message': 'User created successfully'}), 201
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = User.query.filter_by(username=data['username']).first()
+    
+    if user and user.check_password(data['password']):
+        token = jwt.encode({
+            'user_id': user.id,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }, app.config['SECRET_KEY'])
+        
+        return jsonify({'token': token, 'user': {'id': user.id, 'username': user.username}})
+    
+    return jsonify({'error': 'Invalid credentials'}), 401
+
+@app.route('/api/validate', methods=['GET'])
+def validate_token():
+    token = request.headers.get('Authorization')
+    if token:
+        token = token.split(' ')[1]  # Remove 'Bearer ' prefix
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            user = User.query.get(data['user_id'])
+            return jsonify({'id': user.id, 'username': user.username})
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'Token expired'}), 401
+    
+    return jsonify({'error': 'Token required'}), 401
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)`
+                    };
+                    
+                    return codeTemplates[techStack] || codeTemplates.react;
+                }
+            },
+            
+            testing: {
+                generateTestCases: function() {
+                    return [
+                        {
+                            type: "Unit Test",
+                            name: "User Authentication",
+                            description: "Test user login functionality",
+                            testCode: `
+describe('User Authentication', () => {
+  test('should login with valid credentials', async () => {
+    const credentials = { username: 'testuser', password: 'password123' };
+    const response = await login(credentials);
+    expect(response.status).toBe(200);
+    expect(response.data.token).toBeDefined();
+  });
+
+  test('should reject invalid credentials', async () => {
+    const credentials = { username: 'testuser', password: 'wrongpassword' };
+    const response = await login(credentials);
+    expect(response.status).toBe(401);
+    expect(response.data.error).toBe('Invalid credentials');
+  });
+});`
+                        },
+                        {
+                            type: "Integration Test",
+                            name: "Dashboard Data Loading",
+                            description: "Test dashboard data integration",
+                            testCode: `
+describe('Dashboard Integration', () => {
+  test('should load dashboard data for authenticated user', async () => {
+    const token = await getAuthToken();
+    const response = await fetch('/api/dashboard', {
+      headers: { Authorization: \`Bearer \${token}\` }
+    });
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data.metrics).toBeDefined();
+  });
+});`
+                        },
+                        {
+                            type: "E2E Test",
+                            name: "Complete User Journey",
+                            description: "Test complete user workflow",
+                            testCode: `
+describe('User Journey', () => {
+  test('complete login to logout flow', async () => {
+    // Navigate to login page
+    await page.goto('/login');
+    
+    // Fill in credentials
+    await page.fill('[data-testid="username"]', 'testuser');
+    await page.fill('[data-testid="password"]', 'password123');
+    
+    // Submit login
+    await page.click('[data-testid="login-button"]');
+    
+    // Verify dashboard
+    await expect(page).toHaveURL('/dashboard');
+    
+    // Logout
+    await page.click('[data-testid="logout-button"]');
+    await expect(page).toHaveURL('/login');
+  });
+});`
+                        }
+                    ];
+                }
+            }
+        };
+        
+        // UI Functions
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.add('hidden'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.remove('hidden');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        function updateAgentStatus(agent, status, output = '') {
+            const statusElement = document.getElementById(`${agent}Status`);
+            const outputElement = document.getElementById(`${agent}Output`);
+            
+            if (statusElement) {
+                statusElement.className = `agent-status status-${status}`;
+                statusElement.textContent = status.toUpperCase();
+            }
+            
+            if (outputElement && output) {
+                outputElement.innerHTML = `<div class="code-output">${output}</div>`;
+            }
+        }
+        
+        function updateProgress(percentage) {
+            const progressFill = document.getElementById('overallProgress');
+            progressFill.style.width = `${percentage}%`;
+        }
+        
+        // Project Functions
+        function initializeProject() {
+            const name = document.getElementById('projectName').value;
+            const description = document.getElementById('projectDescription').value;
+            const techStack = document.getElementById('techStack').value;
+            
+            if (!name || !description) {
+                showNotification('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            projectData.name = name;
+            projectData.description = description;
+            projectData.techStack = techStack;
+            
+            updateAgentStatus('projectLead', 'working');
+            
+            setTimeout(() => {
+                const output = `Project "${name}" initialized successfully!
+                
+Configuration:
+- Technology Stack: ${techStack}
+- Project Type: Web Application
+- Architecture: Multi-tier
+- Database: Relational
+
+Next Steps:
+1. Generate user requirements
+2. Create system design
+3. Develop core functionality
+4. Implement testing strategy`;
+                
+                updateAgentStatus('projectLead', 'complete', output);
+                updateProgress(20);
+                showNotification('Project initialized successfully!');
+                
+                // Add project artifact
+                addArtifact('Project Configuration', 'config', {
+                    name: name,
+                    description: description,
+                    techStack: techStack
+                });
+            }, 2000);
+        }
+        
+        function generateRequirements() {
+            updateAgentStatus('ba', 'working');
+            
+            setTimeout(() => {
+                const userStories = agentTemplates.requirements.generateUserStories(projectData.description);
+                let output = 'Generated User Stories:\n\n';
+                
+                const storiesContainer = document.getElementById('userStories');
+                storiesContainer.innerHTML = '';
+                
+                userStories.forEach((story, index) => {
+                    output += `${index + 1}. ${story.title}\n${story.description}\n\n`;
+                    
+                    // Create story card
+                    const storyCard = document.createElement('div');
+                    storyCard.className = 'artifact-item';
+                    storyCard.innerHTML = `
+                        <div class="artifact-header">
+                            <div class="artifact-title">${story.title}</div>
+                            <div class="artifact-type">User Story</div>
+                        </div>
+                        <pre style="white-space: pre-wrap; font-family: inherit;">${story.description}</pre>
+                    `;
+                    storiesContainer.appendChild(storyCard);
+                    
+                    // Add to artifacts
+                    addArtifact(story.title, 'user-story', story);
+                });
+                
+                updateAgentStatus('ba', 'complete', output);
+                updateProgress(40);
+                showNotification('User stories generated successfully!');
+            }, 3000);
+        }
+        
+        function generateDesign() {
+            updateAgentStatus('designer', 'working');
+            
+            setTimeout(() => {
+                const designSpecs = agentTemplates.design.generateDesignSpecs();
+                const output = `Design Specifications Generated:
+
+${designSpecs.wireframes}
+
+${designSpecs.architecture}`;
+                
+                const designContainer = document.getElementById('designArtifacts');
+                designContainer.innerHTML = `
+                    <div class="artifact-item">
+                        <div class="artifact-header">
+                            <div class="artifact-title">UI/UX Wireframes</div>
+                            <div class="artifact-type">Design</div>
+                        </div>
+                        <pre style="white-space: pre-wrap; font-family: inherit;">${designSpecs.wireframes}</pre>
+                    </div>
+                    <div class="artifact-item">
+                        <div class="artifact-header">
+                            <div class="artifact-title">System Architecture</div>
+                            <div class="artifact-type">Architecture</div>
+                        </div>
+                        <pre style="white-space: pre-wrap; font-family: inherit;">${designSpecs.architecture}</pre>
+                    </div>
+                `;
+                
+                updateAgentStatus('designer', 'complete', output);
+                updateProgress(60);
+                showNotification('Design specifications created!');
+                
+                addArtifact('UI/UX Design', 'design', designSpecs);
+            }, 3500);
+        }
+        
+        function generateCode() {
+            updateAgentStatus('dev', 'working');
+            
+            setTimeout(() => {
+                const code = agentTemplates.development.generateCode(projectData.techStack);
+                const output = `Generated ${projectData.techStack} application code:
+
+Main application structure created with:
+- Authentication system
+- Component architecture
+- API integration
+- Responsive design
+- Error handling`;
+                
+                const codeContainer = document.getElementById('codeArtifacts');
+                codeContainer.innerHTML = `
+                    <div class="artifact-item">
+                        <div class="artifact-header">
+                            <div class="artifact-title">Application Code</div>
+                            <div class="artifact-type">Code</div>
+                        </div>
+                        <div class="code-output">${code}</div>
+                    </div>
+                `;
+                
+                updateAgentStatus('dev', 'complete', output);
+                updateProgress(80);
+                showNotification('Application code generated!');
+                
+                addArtifact('Application Code', 'code', { code: code, language: projectData.techStack });
+            }, 4000);
+        }
+        
+        function generateTests() {
+            updateAgentStatus('tester', 'working');
+            
+            setTimeout(() => {
+                const testCases = agentTemplates.testing.generateTestCases();
+                let output = 'Generated Test Cases:\n\n';
+                
+                const testContainer = document.getElementById('testResults');
+                testContainer.innerHTML = '';
+                
+                testCases.forEach((test, index) => {
+                    output += `${index + 1}. ${test.name} (${test.type})\n`;
+                    
+                    const testCard = document.createElement('div');
+                    testCard.className = 'artifact-item';
+                    testCard.innerHTML = `
+                        <div class="artifact-header">
+                            <div class="artifact-title">${test.name}</div>
+                            <div class="artifact-type">${test.type}</div>
+                        </div>
+                        <p><strong>Description:</strong> ${test.description}</p>
+                        <div class="code-output">${test.testCode}</div>
+                    `;
+                    testContainer.appendChild(testCard);
+                    
+                    addArtifact(test.name, 'test', test);
+                });
+                
+                updateAgentStatus('tester', 'complete', output);
+                updateProgress(90);
+                showNotification('Test cases generated successfully!');
+            }, 3000);
+        }
+        
+        function runTests() {
+            showNotification('Running tests...');
+            
+            setTimeout(() => {
+                const testResults = `
+Test Execution Results:
+✅ User Authentication - PASSED
+✅ Dashboard Data Loading - PASSED  
+✅ Complete User Journey - PASSED
+
+Total: 3 tests
+Passed: 3
+Failed: 0
+Coverage: 85%`;
+                
+                const resultsDiv = document.createElement('div');
+                resultsDiv.className = 'code-output';
+                resultsDiv.style.marginTop = '20px';
+                resultsDiv.textContent = testResults;
+                
+                document.getElementById('testResults').appendChild(resultsDiv);
+                updateProgress(100);
+                showNotification('All tests passed!');
+            }, 2000);
+        }
+        
+        function addArtifact(name, type, data) {
+            const artifact = {
+                id: Date.now(),
+                name: name,
+                type: type,
+                data: data,
+                timestamp: new Date().toISOString()
+            };
+            
+            projectData.artifacts.push(artifact);
+            updateArtifactsList();
+        }
+        
+        function updateArtifactsList() {
+            const container = document.getElementById('artifactsList');
+            container.innerHTML = '';
+            
+            if (projectData.artifacts.length === 0) {
+                container.innerHTML = '<p>No artifacts generated yet. Complete the project phases to create artifacts.</p>';
+                return;
+            }
+            
+            projectData.artifacts.forEach(artifact => {
+                const artifactCard = document.createElement('div');
+                artifactCard.className = 'artifact-item';
+                artifactCard.innerHTML = `
+                    <div class="artifact-header">
+                        <div class="artifact-title">${artifact.name}</div>
+                        <div class="artifact-type">${artifact.type}</div>
+                    </div>
+                    <p><small>Created: ${new Date(artifact.timestamp).toLocaleString()}</small></p>
+                `;
+                
+                artifactCard.onclick = () => {
+                    showArtifactDetails(artifact);
+                };
+                
+                container.appendChild(artifactCard);
+            });
+        }
+        
+        function showArtifactDetails(artifact) {
+            alert(`Artifact: ${artifact.name}\nType: ${artifact.type}\nCreated: ${new Date(artifact.timestamp).toLocaleString()}\n\nClick Export to download all artifacts.`);
+        }
+        
+        function exportArtifacts() {
+            if (projectData.artifacts.length === 0) {
+                showNotification('No artifacts to export', 'error');
+                return;
+            }
+            
+            const exportData = {
+                project: {
+                    name: projectData.name,
+                    description: projectData.description,
+                    techStack: projectData.techStack
+                },
+                artifacts: projectData.artifacts,
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${projectData.name || 'virtual-pod'}-artifacts.json`;
+            link.click();
+            
+            showNotification('Artifacts exported successfully!');
+        }
+        
+        // Chat Functions
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addChatMessage(message, 'user');
+            input.value = '';
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const response = generateAIResponse(message);
+                addChatMessage(response, 'bot');
+            }, 1000);
+        }
+        
+        function addChatMessage(message, sender) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            if (sender === 'bot') {
+                messageDiv.innerHTML = `<strong>Virtual Pod Assistant:</strong> ${message}`;
+            } else {
+                messageDiv.innerHTML = `<strong>You:</strong> ${message}`;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function generateAIResponse(userMessage) {
+            const responses = {
+                'status': `Your project "${projectData.name || 'Untitled'}" is currently in the ${projectData.currentPhase} phase. You have ${projectData.artifacts.length} artifacts generated so far.`,
+                'help': 'I can help you with project initialization, requirements analysis, design specifications, code generation, and testing. What would you like to know more about?',
+                'artifacts': `You currently have ${projectData.artifacts.length} artifacts: ${projectData.artifacts.map(a => a.name).join(', ')}`,
+                'progress': `Your project is ${document.getElementById('overallProgress').style.width || '0%'} complete. Continue with the next phase to make more progress!`,
+                'technology': `Your project is using ${projectData.techStack || 'no technology stack selected yet'}. This is a great choice for modern web applications!`
+            };
+            
+            const message = userMessage.toLowerCase();
+            
+            if (message.includes('status') || message.includes('progress')) {
+                return responses.status;
+            } else if (message.includes('help') || message.includes('what')) {
+                return responses.help;
+            } else if (message.includes('artifact')) {
+                return responses.artifacts;
+            } else if (message.includes('technology') || message.includes('tech')) {
+                return responses.technology;
+            } else {
+                return `I understand you're asking about: "${userMessage}". I'm here to help with your Virtual Pod project. You can ask me about project status, artifacts, technology choices, or any development questions!`;
+            }
+        }
+        
+        // Allow Enter key to send chat messages
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+            }
+            
+            // Initialize artifacts list
+            updateArtifactsList();
+        });
+    </script>
+</body>
+</html>
+                    
