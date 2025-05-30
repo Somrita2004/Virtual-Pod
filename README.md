@@ -1,6 +1,6 @@
 # 🤖 Virtual Pod - AI-Powered Virtual Development Environment
 
-![Virtual Pod Dashboard](screenshots/dashboard.png)
+
 
 Virtual Pod is an innovative AI-powered development environment that simulates a complete software development lifecycle using a multi-agent architecture enhanced with Retrieval-Augmented Generation (RAG) concepts.
 
